@@ -1,0 +1,34 @@
+.admin-sidebar {
+  background-color: #fff;
+  box-shadow: 0 0 12px 0 rgba(0, 0, 0, 0.1);
+  // 重置，继承父
+  .el-menu {
+    background-color: inherit;
+    // 侧边栏字体颜色
+    .el-menu-item,
+    .el-submenu__title {
+      color: #909399;
+    }
+    // 侧边栏点击后颜色
+    .el-menu-item.is-active {
+      color: #409EFF;
+    }
+  }
+}
+
+.el-menu--vertical {
+  .el-menu{
+    .el-menu-item {
+      color: #909399;
+    }
+  }
+}
+
+.admin-header {
+  .el-header {
+    background-color: #fff;
+  }
+  .admin-tabs-nav-container {
+    background-color: #fff;
+  }
+}
