@@ -39,6 +39,7 @@
                 style="margin-right: 10px"
                 placeholder="请输入验证码"
                 clearable
+                :spellcheck="false"
               ></el-input>
               <Identify
                 :isRefresh.sync="isRefresh"

@@ -16,6 +16,6 @@ export class Base64 {
 
 export class MD5 {
   static enc (content) {
-    _MD5(content).toString()
+    return _MD5(content).toString()
   }
 }

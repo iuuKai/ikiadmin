@@ -6,11 +6,11 @@
     :append-to-body="false"
     popper-class="popup-export"
   >
-    <el-row class="popup-export__item" @click="downloadMarkdown">
+    <el-row class="popup-export__item" @click.native="downloadMarkdown">
       <i class="popup-export__icon fa fa-download"></i>
       <span class="popup-export__text">导出为 Markdown 文件</span>
     </el-row>
-    <el-row class="popup-export__item" @click="downloadHtml">
+    <el-row class="popup-export__item" @click.native="downloadHtml">
       <i class="popup-export__icon fa fa-download"></i>
       <span class="popup-export__text">导出为 HTML 文件</span>
     </el-row>
@@ -32,8 +32,8 @@ import { templateHtml } from '@/assets/js/template'
 export default {
   props: {
     title: String,
-    'html-value': String,
-    'markdown-value': String
+    htmlValue: String,
+    markdownValue: String
   },
   mounted () {
     const popper = this.popper

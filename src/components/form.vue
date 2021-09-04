@@ -3,6 +3,7 @@
     ref="form"
     :model="formData"
     :rules="formRules"
+    :size="size"
     label-width="85px"
     :label-position="this.screenWidth >= 768 ? 'right' : 'top'"
   >
@@ -11,7 +12,6 @@
       :key="item.model"
       :label="item.label"
       :prop="item.model"
-      :size="size"
     >
       <!-- 输入框 -->
       <ikiInput

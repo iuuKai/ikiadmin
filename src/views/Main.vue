@@ -8,9 +8,9 @@
       <el-main>
         <router-view></router-view>
       </el-main>
-      <el-backtop
-        target=".page-component__scroll .el-scrollbar__wrap"
-      ></el-backtop>
+      <el-backtop target=".page-component__scroll .el-scrollbar__wrap">
+        <i class="fa fa-angle-double-up" aria-hidden="true"></i>
+      </el-backtop>
     </el-scrollbar>
   </el-container>
 </template>

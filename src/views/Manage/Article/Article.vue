@@ -9,7 +9,10 @@
     <div class="article-manage-list" data=""></div>
     <el-card>
       <!-- 列表 -->
-      <ArticleList :detailsVisible.sync="detailsVisible"></ArticleList>
+      <ArticleList
+        :data="articleList"
+        @open-viewer="goDetail($event, true)"
+      ></ArticleList>
       <div style="text-align: center">
         <el-pagination
           background
@@ -22,57 +25,118 @@
       </div>
     </el-card>
     <!-- 上传 -->
-    <ArticleUpload :uploadVisible.sync="uploadVisible"></ArticleUpload>
+    <ArticleUpload
+      :uploadVisible.sync="uploadVisible"
+      @open-viewer="goDetail($event, false)"
+    ></ArticleUpload>
     <!-- 浏览 -->
-    <ArticleDetails :detailsVisible.sync="detailsVisible"></ArticleDetails>
+    <ArticleDetail
+      v-if="detailContent.length > 0"
+      v-model="detailContent"
+      dialog-width="800px"
+      :article-title="detailTitle"
+      :article-options="detailOptions"
+      append-to-body
+      fullscreen
+      :visible.sync="detailsVisible"
+    ></ArticleDetail>
   </div>
 </template>
 
 <script>
-import router from '@/router'
 import ArticleUpload from './ArticleUpload'
 import ArticleList from './ArticleList'
-import ArticleDetails from './ArticleDetails'
+// import ArticleDetails from './ArticleDetails'
+import ArticleDetail from '@/components/article/ArticleDetail'
+
 export default {
   created () {
+    this.initDetail()
+    this.getArticleList()
   },
   mounted () {
   },
-  computed: {
-  },
   methods: {
+    // 初始化，如果route包含id则直接访问
+    initDetail () {
+      const id = this.id
+      if (id) {
+        this.detailsVisible = true
+        this.getDetail(id)
+      }
+    },
+    // 获取文章列表
+    getArticleList () {
+      this.$store.dispatch('article/getArticleList').then(list => {
+        this.articleList = list
+      })
+    },
+    // 获取文章内容
+    getDetail (id) {
+      this.$store.dispatch('article/getDetail', id).then(res => {
+        this.detailTitle = res.title
+        this.detailContent = res.content
+      })
+    },
+    // 前往编辑器
     goEditor () {
-      router.push({ name: 'editor' })
+      this.$router.push({ name: 'editor' })
+    },
+    // 前往文章浏览
+    goDetail (value, isUploaded = false) {
+      // 是否已上传
+      if (isUploaded) {
+        const { objectId: id } = value
+        this.$router.push({ query: { id } })
+      } else {
+        const { title, content } = value
+        this.detailTitle = title
+        this.detailContent = content
+        this.detailsVisible = true
+      }
+    }
+  },
+  computed: {
+    id () {
+      return this.$route.query.id
+    }
+  },
+  watch: {
+    detailContent () { },
+    id (newValue, oldValue) {
+      if (newValue) {
+        this.detailsVisible = true
+        this.getDetail(newValue)
+      } else {
+        this.detailsVisible = false
+      }
+    },
+    detailsVisible (newValue, oldValue) {
+      if (!newValue) {
+        this.$router.push({ query: '' })
+        this.detailTitle = ''
+        this.detailContent = ''
+      }
     }
   },
   data () {
     return {
       detailsVisible: false,
-      uploadVisible: false
+      uploadVisible: false,
+      detailContent: '',
+      detailTitle: '',
+      detailOptions: {},
+      articleList: []
     }
   },
   components: {
     ArticleUpload,
     ArticleList,
-    ArticleDetails
+    // ArticleDetails
+    ArticleDetail
   }
 }
 </script>
 
 <style lang="scss" scoped>
-.el-dialog__wrapper {
-  ::v-deep .el-dialog {
-    margin-top: 50px !important;
-  }
-}
-@media screen and (max-width: 767px) {
-  .el-dialog__wrapper {
-    ::v-deep .el-dialog {
-      margin-left: auto;
-      margin-right: auto;
-      max-width: calc(100% - 16px);
-      min-width: 285px;
-    }
-  }
-}
 </style>

@@ -7,8 +7,6 @@ const serverURLs = 'https://avoscloud.com'
 
 AV.init({ appId, appKey, serverURLs })
 
-window.AV = AV
-
 // 存储与读取操作
 export class LeanCloud {
   constructor (_avClass) {

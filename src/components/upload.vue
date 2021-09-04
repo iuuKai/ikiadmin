@@ -17,6 +17,7 @@
     :auto-upload="autoUpload"
     :show-file-list="showFileList"
     :http-request="handleUpload"
+    :on-change="handleChange"
     :on-exceed="handleExceed"
   >
     <!-- 默认插槽 -->
@@ -33,19 +34,17 @@
     </template>
 
     <!-- 缩略图模板 -->
-    <div slot="file" slot-scope="{ file }">
-      <img
+    <div style="height: 100%" slot="file" slot-scope="{ file }">
+      <el-image
         v-if="!drag"
-        class="el-upload-list__item-thumbnail"
+        ref="viewer"
+        fit="cover"
         :src="file.url"
-        alt=""
-      />
+        :preview-src-list="[file.url]"
+      >
+      </el-image>
       <div v-else class="upload-file__success-wrap">
-        <el-row class="upload-file__tip">
-          <i class="el-icon-success"></i>
-          <span>添加成功</span>
-        </el-row>
-        <h1>{{ file.name }}</h1>
+        <el-result icon="success" :subTitle="file.name"> </el-result>
       </div>
       <!-- 模态层 -->
       <span class="el-upload-list__item-actions">
@@ -88,6 +87,11 @@ export default {
     }
   },
   methods: {
+    handleChange (a, b, c) {
+      if (!this.drag) {
+        console.log(a, b, c)
+      }
+    },
     // 自定义上传行为
     handleUpload (res) {
       this.$emit('on-upload', res)
@@ -97,7 +101,13 @@ export default {
       this.$emit('on-exceed', files, fileList)
     },
     handlePictureCardPreview (file) {
-      this.$emit('on-preview', file)
+      if (this.drag) {
+        // 文章预览
+        this.$emit('on-preview', file)
+      } else {
+        // 图片预览
+        this.$refs.viewer.clickHandler()
+      }
     },
     handleRemove (file) {
       this.$emit('on-remove', file)
@@ -146,9 +156,6 @@ export default {
       line-height: 1;
       text-align: center;
       transform: translate(-50%, -50%);
-      .upload-file__tip {
-        color: #67c23a;
-      }
     }
   }
   ::v-deep .el-upload-list--picture-card {

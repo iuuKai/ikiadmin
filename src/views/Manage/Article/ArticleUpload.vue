@@ -5,7 +5,6 @@
     :visible.sync="isVisible"
     width="700px"
     :close-on-click-modal="false"
-    :close-on-press-escape="false"
     destroy-on-close
     @close="resetForm"
   >
@@ -32,7 +31,7 @@
             :file-list="fileList"
             list-type="picture-card"
             :disabled="fileList.length >= 1"
-            @on-upload="handleUpload($event, fileList)"
+            @on-upload="handleImport($event, fileList)"
             @on-preview="handlePreview"
             @on-remove="handleRemove($event, fileList)"
           ></ikiUpload>
@@ -47,48 +46,31 @@
             :file-list="coverList"
             list-type="picture-card"
             :disabled="coverList.length >= 1"
-            @on-preview="handlePreview"
             @on-remove="handleRemove($event, coverList)"
           ></ikiUpload>
         </el-row>
       </el-col>
     </el-row>
+    <!-- footer 插槽 -->
     <div slot="footer" class="dialog-footer">
       <el-button size="small" @click="isVisible = false">取 消</el-button>
-      <el-button type="primary" size="small">确 定</el-button>
+      <el-button type="primary" size="small" @click="submitForm"
+        >确 定</el-button
+      >
     </div>
-    <!-- 内嵌 dialog，文章、图片的预览 -->
-    <ikiBrowseArticle
-      v-model="fileContent"
-      dialog-width="800px"
-      :article-title="formData.title"
-      append-to-body
-      fullscreen
-      :visible.sync="innerVisible"
-      :close-on-click-modal="false"
-    ></ikiBrowseArticle>
-    <el-dialog
-      width="70%"
-      append-to-body
-      :close-on-click-modal="false"
-      :visible.sync="innerImgVisible"
-    >
-      <img v-if="isImg" width="100%" :src="innerImgUrl" alt="" />
-    </el-dialog>
+    <div>{{ formData.category }}</div>
   </el-dialog>
 </template>
 
 <script>
 // 组件
 import ikiUpload from '@/components/upload'
-// import ikiUpload from '@/components/article/upload'
 import ikiForm from '@/components/form'
-import ikiBrowseArticle from '@/components/article/browse/dialogBrowseArticle'
-// import ikiBrowseImage from '@/components/article/browse/dialogBrowseImage'
-// import ikiEditor from '@/components/mavonEditor/mavonEditor'
 
 // js
+import { markdownIt } from 'mavon-editor'
 import { formOptions } from '@/assets/js/uploadForm'
+// import { Base64 } from '@/assets/js/encode'
 
 export default {
   props: {
@@ -109,25 +91,43 @@ export default {
       }
     }
   },
+  created () {
+    this.getCategoryList()
+  },
   methods: {
     // 拿取文章信息赋值给 formData
-    getFile ({ name, file: { result } }) {
-      // console.log(name, result)
-      this.fileContent = result
+    // getFile ({ name, file: { result } }) {
+    //   // console.log(name, result)
+    //   this.fileContent = result
+    // },
+    getCategoryList () {
+      this.$store.dispatch('article/getCategoryList')
     },
     // 向远程仓库推送文件
     pushFile () {
-      console.log(this.formData)
+      const { title, category, date: createdDate, tags, type } = this.formData
+      const info = { title, category, createdDate, tags, type }
+      // const content = Base64.enc(this.fileContent)
+      // console.log(this.formData, content)
+      // 第一步，上传到 gitee
+      this.$store.dispatch('article/addArticle', {
+        info,
+        content: this.fileContent
+      }).then(res => {
+        console.log(res)
+      }).catch(err => {
+        console.error(err)
+      })
     },
     submitForm () {
-      if (this.isExist) {
+      if (this.fileList.length > 0) {
         this.$refs.form.validate(valid => {
           if (valid) {
             this.pushFile()
-            this.$message({
-              type: 'success',
-              message: '上传成功!'
-            })
+            // this.$message({
+            //   type: 'success',
+            //   message: '上传成功!'
+            // })
           } else {
             return valid
           }
@@ -145,53 +145,62 @@ export default {
       this.coverList = []
       this.$refs.form.reset()
     },
-    handleOpened () {
-      if (this.isImg) return
-      // el-dialog__body 中的内容是懒加载的，存在延迟
-      setTimeout(_ => {
-        // this.$refs.editor.addLinesAndCopy()
-      }, 500)
-    },
     handleClosed () {
-      this.isImg = false
       // this.$router.back()
     },
     handlePreview (file) {
       if ('raw' in file) {
-        this.isImg = true
-        this.innerImgUrl = file.url
-        this.innerImgVisible = true
+        // this.isImg = true
+        // this.innerImgUrl = file.url
+        // this.innerImgVisible = true
       } else {
-        // this.$router.push({ path: this.$route.path, query: { id: 123 } })
-        const reader = new FileReader()
-        reader.readAsText(file)
-        reader.onload = e => {
-          this.fileContent = e.target.result
-        }
-        this.innerVisible = true
+        this.$emit('open-viewer', { ...this.formData, content: this.fileContent })
       }
     },
     handleRemove (file, list) {
+      if ('raw' in file) {
+        // this.innerImgUrl = ''
+      } else {
+        this.formData.title = ''
+        this.fileContent = ''
+      }
       const index = list.findIndex(({ uid }) => uid === file.uid)
       list.splice(index, 1)
     },
-    handleUpload (res, list) {
+    handleImport (res, list) {
       if (list.length === 0) {
-        const fileName = res.file.name
-        this.formData.title = fileName.substring(0, fileName.lastIndexOf('.'))
-        list.push(res.file)
+        const reader = new FileReader()
+        reader.readAsText(res.file)
+        reader.onload = e => {
+          this.fileContent = e.target.result
+          const fileName = res.file.name
+          this.formData.title = fileName.substring(0, fileName.lastIndexOf('.'))
+          list.push(res.file)
+        }
       }
+    }
+  },
+  watch: {
+    fileContent (newValue, oldValue) {
+      if (newValue) {
+        const html = markdownIt.render(newValue)
+        const div = document.createElement('div')
+        div.innerHTML = html
+        // 描述
+        this.abstract = div.textContent.replace(/\n/g, ' ').substr(0, 250)
+      }
+    },
+    abstract (newValue, oldValue) {
+      // console.log(newValue)
     }
   },
   data () {
     return {
-      title: '',
-      content: '',
-      innerVisible: false,
-      innerImgVisible: false,
-      isImg: false,
-      innerImgUrl: '',
-      fileContent: '',
+      // innerImgVisible: false,
+      // isImg: false,
+      // innerImgUrl: '',
+      // 摘要
+      abstract: '',
       fileList: [],
       coverList: [],
       formLabel: formOptions.label,
@@ -207,10 +216,7 @@ export default {
   },
   components: {
     ikiUpload,
-    ikiForm,
-    ikiBrowseArticle
-    // ikiBrowseImage
-    // ikiEditor
+    ikiForm
   }
 }
 </script>

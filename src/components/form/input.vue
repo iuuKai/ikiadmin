@@ -19,6 +19,7 @@
       :clearable="clearable"
       :disabled="disabled"
       :autosize="autosize"
+      :spellcheck="spellcheck"
       :show-password="showPassword"
     >
       <template :slot="slotType">{{ slotContent }}</template>
@@ -39,6 +40,7 @@
     :clearable="clearable"
     :disabled="disabled"
     :autosize="autosize"
+    :spellcheck="spellcheck"
     :show-password="showPassword"
   >
     <template :slot="slotType">{{ slotContent }}</template>
@@ -62,6 +64,10 @@ export default {
     tooltipPlacement: String,
     autosize: {
       type: [Boolean, Object],
+      default: false
+    },
+    spellcheck: {
+      type: Boolean,
       default: false
     },
     disabled: {
