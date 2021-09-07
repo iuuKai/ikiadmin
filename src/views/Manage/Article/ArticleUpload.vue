@@ -58,7 +58,6 @@
         >确 定</el-button
       >
     </div>
-    <div>{{ formData.category }}</div>
   </el-dialog>
 </template>
 
@@ -70,14 +69,14 @@ import ikiForm from '@/components/form'
 // js
 import { markdownIt } from 'mavon-editor'
 import { formOptions } from '@/assets/js/uploadForm'
-// import { Base64 } from '@/assets/js/encode'
 
 export default {
   props: {
-    'upload-visible': {
+    uploadVisible: {
       type: Boolean,
       default: false
-    }
+    },
+    options: Object
   },
   computed: {
     // 中转 uploadVisible
@@ -92,7 +91,7 @@ export default {
     }
   },
   created () {
-    this.getCategoryList()
+    // this.getCategoryList()
   },
   methods: {
     // 拿取文章信息赋值给 formData
@@ -100,15 +99,15 @@ export default {
     //   // console.log(name, result)
     //   this.fileContent = result
     // },
-    getCategoryList () {
-      this.$store.dispatch('article/getCategoryList')
-    },
+    // getCategoryList () {
+    //   this.$store.dispatch('article/getCategoryList')
+    // },
     // 向远程仓库推送文件
     pushFile () {
+      // console.log(type.isObject(this.formData.category))
       const { title, category, date: createdDate, tags, type } = this.formData
-      const info = { title, category, createdDate, tags, type }
-      // const content = Base64.enc(this.fileContent)
-      // console.log(this.formData, content)
+      const updatedDate = new Date()
+      const info = { title, category, createdDate, updatedDate, tags, type }
       // 第一步，上传到 gitee
       this.$store.dispatch('article/addArticle', {
         info,
@@ -181,6 +180,13 @@ export default {
     }
   },
   watch: {
+    options (newValue, oldValue) {
+      // const { category, tags } = newValue
+      // this.formLabel
+      Object.keys(newValue).forEach(item => {
+        this.formLabel.find(({ model }) => model === item).options = newValue[item]
+      })
+    },
     fileContent (newValue, oldValue) {
       if (newValue) {
         const html = markdownIt.render(newValue)

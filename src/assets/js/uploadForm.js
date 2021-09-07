@@ -11,9 +11,9 @@ export const formOptions = {
     {
       model: 'title',
       label: '文章标题',
-      type: 'text',
       max: titleMaxLen,
       placeholder: title,
+      clearable: true,
       showWordLimit: true
     },
     {
@@ -25,6 +25,7 @@ export const formOptions = {
       clearable: true,
       filterable: true,
       allowCreate: true,
+      valueObject: true,
       defaultFirstOption: true,
       tooltipContent: '支持输入搜索或新建分类~',
       tooltipPlacement: 'top',
@@ -42,7 +43,7 @@ export const formOptions = {
       label: '文章标签',
       type: 'tagCheck',
       max: 5,
-      options: ['node', 'vue', 'java', 'php', 'html', 'js', 'css', 'c#', 'element-ui', 'UI框架']
+      options: []
     },
     {
       model: 'type',
@@ -69,6 +70,9 @@ export const formOptions = {
   rules: {
     title: [
       { max: titleMaxLen, message: `长度不能超过 ${titleMaxLen} 个字符`, trigger: 'change' }
+    ],
+    category: [
+      { required: true, message: '请选择文章分类', trigger: 'change' }
     ],
     date: [
       { type: 'date', required: true, message: '请选择日期', trigger: 'change' }

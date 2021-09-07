@@ -7,7 +7,15 @@
 <script>
 
 export default {
+  created () {
+    this.getCategoryList()
+  },
   methods: {
+    getCategoryList () {
+      this.$store.dispatch('article/getCategoryList').then(list => {
+        console.log(list)
+      })
+    }
   },
   data () {
     return {

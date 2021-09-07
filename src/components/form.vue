@@ -13,14 +13,6 @@
       :label="item.label"
       :prop="item.model"
     >
-      <!-- 输入框 -->
-      <ikiInput
-        v-if="item.type === 'text'"
-        v-model="formData[item.model]"
-        :placeholder="item.placeholder"
-        :maxlength="item.max"
-        :show-word-limit="item.showWordLimit"
-      ></ikiInput>
       <!-- 下拉 -->
       <ikiSelect
         v-if="item.type === 'select'"
@@ -30,6 +22,7 @@
         :width="item.width"
         :clearable="item.clearable"
         :filterable="item.filterable"
+        :valueObject="item.valueObject"
         :allow-create="item.allowCreate"
         :default-first-option="item.defaultFirstOption"
         :tooltipContent="item.tooltipContent"
@@ -37,20 +30,29 @@
       ></ikiSelect>
       <!-- 日期 -->
       <ikiDate
-        v-if="item.type === 'date'"
+        v-else-if="item.type === 'date'"
         v-model="formData[item.model]"
         :width="item.width"
         :placeholder="item.placeholder"
       ></ikiDate>
       <!-- 标签 -->
       <ikiTagCheck
-        v-if="item.type === 'tagCheck'"
+        v-else-if="item.type === 'tagCheck'"
         v-model="formData[item.model]"
         :placeholder="item.placeholder"
         :options="item.options"
         :max="item.max"
         :name="item.model"
       ></ikiTagCheck>
+      <!-- 输入框 -->
+      <ikiInput
+        v-else
+        v-model="formData[item.model]"
+        :placeholder="item.placeholder"
+        :maxlength="item.max"
+        :clearable="item.clearable"
+        :show-word-limit="item.showWordLimit"
+      ></ikiInput>
     </el-form-item>
   </el-form>
 </template>

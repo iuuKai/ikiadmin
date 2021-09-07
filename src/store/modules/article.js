@@ -1,5 +1,7 @@
 import { LeanCloud } from '@/assets/js/leancloud'
 import { Repositories } from '@/assets/js/gitee'
+import { type } from '@/assets/js/util'
+import dayjs from 'dayjs'
 import { Base64 } from '@/assets/js/encode'
 
 export default {
@@ -32,7 +34,7 @@ export default {
     }
   },
   actions: {
-    getDetail ({ state, getters, commit }, id) {
+    getDetail ({ state, getters, commit, dispatch }, id) {
       const article = getters.article
       const gitee = getters.gitee
       const path = `detail/${id}.md`
@@ -45,7 +47,7 @@ export default {
         }
       })
     },
-    getArticle ({ state, getters, commit }, id) {
+    getArticle ({ state, getters, commit, dispatch }, id) {
       const article = getters.article
       const gitee = getters.gitee
       const path = `detail/${id}.md`
@@ -58,32 +60,53 @@ export default {
         }
       })
     },
-    getArticleList ({ state, getters, commit }) {
+    getArticleList ({ state, getters, commit, dispatch }) {
       const article = getters.article
+      const category = getters.category
       return article.getItems().then(list => {
-        // console.log(list)
-        return list.map(item => item.toJSON()).sort((a, b) => {
+        return Promise.all(list.map(async item => {
+          const { category: { objectId: id } } = item.toJSON()
+          const { name } = (await category.id(id)).toJSON()
+          return {
+            ...item.toJSON(),
+            category: name
+          }
+        }).sort((a, b) => {
           // 文章创建时间降序
           return new Date(b.createdDate) - new Date(a.createdDate)
-        })
+        }))
       })
     },
-    getCategoryList ({ state, getters, commit }) {
+    // getCategory ({ state, getters, commit, dispatch }, id) {
+    //   const category = getters.category
+    //   return category.id(id).then(res => {
+    //     console.log(res)
+    //   })
+    // },
+    getCategoryList ({ state, getters, commit, dispatch }) {
       const category = getters.category
       return category.getItems().then(list => {
-        const categoryList = list.map(item => {
+        return list.map(item => {
           const { name: label, objectId: value } = item.toJSON()
           return { label, value }
         })
-        commit('getCategoryList', categoryList)
       })
-      // commit('getCategoryList', )
     },
-    addArticle ({ state, getters, commit }, { info, content }) {
+    addArticle ({ state, getters, commit, dispatch }, { info, content }) {
       return new Promise((resolve, reject) => {
         const article = getters.article
         const gitee = getters.gitee
-        article.addItem(info).then(art => {
+        const category = getters.category
+        const t = info.title ? info.title : `note_${dayjs().format('YYYYMMDD')}`
+        const c = type.isObject(info.category)
+          ? category.getPointer(info.category.value)
+          : (info.category !== ''
+            ? category.setPointer({ name: info.category })
+            : undefined)
+        c && c.increment('count', 1)
+        info.category = c
+        info.title = t
+        article.addItem({ ...info }).then(art => {
           const path = `detail/${art.id}.md`
           // const message
           gitee.addFile(path, { content: Base64.enc(content) }).then(res => {
@@ -97,9 +120,6 @@ export default {
           reject(new Error('信息存储失败'))
         })
       })
-      // const gitee = getters.gitee
-      // 首先存储到 gitee 中
-      // return gitee.addFile(path, { content, message }).then(res => {})
     }
   }
 }

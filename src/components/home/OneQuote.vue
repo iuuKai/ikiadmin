@@ -69,8 +69,8 @@ export default {
   methods: {
     // 获取每日一句
     getQuoteData () {
-      const protocol = /(http|https):\/\/[^/\r\n]+\/[^\r\n]*?/.exec(location.href)[1]
-      this.$jsonp(`${protocol}://sentence.iciba.com/index.php`, this.jsonpParams)
+      // const protocol = /(http|https):\/\/[^/\r\n]+\/[^\r\n]*?/.exec(location.href)[1]
+      this.$jsonp('//sentence.iciba.com/index.php', this.jsonpParams)
         .then(({ content, note, title, tts }) => {
           this.quoteData.content = content.replace('\u000b', '').replace(/\s*$/, '')
           this.quoteData.note = note

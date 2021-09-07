@@ -27,6 +27,7 @@
     <!-- 上传 -->
     <ArticleUpload
       :uploadVisible.sync="uploadVisible"
+      :options="uploadOptions"
       @open-viewer="goDetail($event, false)"
     ></ArticleUpload>
     <!-- 浏览 -->
@@ -52,6 +53,7 @@ import ArticleDetail from '@/components/article/ArticleDetail'
 export default {
   created () {
     this.initDetail()
+    this.getCategoryList()
     this.getArticleList()
   },
   mounted () {
@@ -65,10 +67,27 @@ export default {
         this.getDetail(id)
       }
     },
+    // 获取分类
+    getCategoryList () {
+      this.$store.dispatch('article/getCategoryList').then(list => {
+        this.categoryList = list
+      })
+    },
     // 获取文章列表
     getArticleList () {
       this.$store.dispatch('article/getArticleList').then(list => {
         this.articleList = list
+        this.articleList.sort((a, b) => {
+          // 如果两者 top 一样，就 createdDate 升序
+          if ((a.top && b.top) || (!a.top && !b.top)) {
+            return a.createdDate - b.createdDate
+          } else {
+            return b.top - a.top
+          }
+        })
+        this.tagList = Array.from(new Set(list.map(({ tags }) => {
+          return tags
+        }).flat()))
       })
     },
     // 获取文章内容
@@ -99,6 +118,12 @@ export default {
   computed: {
     id () {
       return this.$route.query.id
+    },
+    uploadOptions () {
+      return {
+        tags: this.tagList,
+        category: this.categoryList
+      }
     }
   },
   watch: {
@@ -126,7 +151,12 @@ export default {
       detailContent: '',
       detailTitle: '',
       detailOptions: {},
-      articleList: []
+      // 文章列表
+      articleList: [],
+      // 标签
+      tagList: [],
+      // 分类
+      categoryList: []
     }
   },
   components: {
