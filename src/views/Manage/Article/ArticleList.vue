@@ -6,79 +6,26 @@
         <!-- .wrapper -->
         <el-row type="flex" class="article-list-wrapper" :gutter="20">
           <el-col>
-            <el-row
-              class="article-list-item-title"
-              type="flex"
-              justify="space-between"
-              align="middle"
-            >
-              <h4 class="article-list-item-txt">
-                <el-link :underline="false" @click="goDetail(item)">{{
-                  item.title
-                }}</el-link>
-              </h4>
-              <div class="postdate">
-                <time :datetime="format(item.createdDate)">
-                  {{ format(item.createdDate) }}
-                </time>
-              </div>
-            </el-row>
-            <el-row class="article-list-type">
-              <!-- 文章置顶 -->
-              <el-tag type="info" size="small" v-if="item.top">置顶</el-tag>
-              <!-- 文章类型 -->
-              <el-tag :type="item.type | type" size="small">
-                {{ item.type | type(true) }}
-              </el-tag>
-              <div></div>
-            </el-row>
+            <!-- 文章标题 -->
+            <ItemTitle
+              :title="item.title"
+              :date="format(item.createdDate)"
+              @on-title-click="handleDetail(item)"
+            ></ItemTitle>
+            <!-- 文章类型 -->
+            <ItemType :top="item.top" :type="item.type"></ItemType>
             <!-- 文章分类 -->
-            <el-row class="article-list-item-category">
-              <span title="分类">
-                <i class="fa fa-inbox" aria-hidden="true"></i>
-                <span class="category-text">{{ item.category }}</span>
-              </span>
-            </el-row>
+            <ItemCategory :category="item.category"></ItemCategory>
             <!-- 文章数据与操作 -->
-            <el-row type="flex" class="article-list-item-info">
-              <el-col>
-                <el-row type="flex" align="middle">
-                  <template v-for="(info, i) in infoLabel">
-                    <div v-if="i > 0" class="circle-step" :key="i"></div>
-                    <div
-                      class="article-list-item-readComment"
-                      :key="info.model"
-                      :title="info.title"
-                    >
-                      <i :class="info.icon"></i>
-                      <span> {{ item[info.model] }} </span>
-                    </div>
-                  </template>
-                </el-row>
-              </el-col>
-              <el-col>
-                <el-row class="item-info-oper" type="flex" justify="end">
-                  <el-link type="info" :underline="false">编辑</el-link>
-                  <el-link type="info" :underline="false">预览</el-link>
-                  <el-dropdown>
-                    <el-link
-                      type="info"
-                      class="el-icon-more"
-                      :underline="false"
-                    ></el-link>
-                    <el-dropdown-menu slot="dropdown">
-                      <template v-if="item.type !== 4">
-                        <el-dropdown-item>修改信息</el-dropdown-item>
-                        <el-dropdown-item>{{
-                          item.top ? '取消置顶' : '置顶'
-                        }}</el-dropdown-item>
-                      </template>
-                      <el-dropdown-item>删除</el-dropdown-item>
-                    </el-dropdown-menu>
-                  </el-dropdown>
-                </el-row>
-              </el-col>
-            </el-row>
+            <ItemInfo
+              :data="item | infoData"
+              :label="infoLabel"
+              @on-edit="handleEdidt(item)"
+              @on-detail="handleDetail(item)"
+              @on-update="handleUpdate"
+              @on-unpinned="handleUnpinned"
+              @on-delete="handleDelete"
+            ></ItemInfo>
           </el-col>
           <el-col style="flex: 1">
             <el-image
@@ -87,6 +34,7 @@
               :src="url"
               :preview-src-list="srcList"
             >
+              <div class="el-image__error" slot="error">空空如也...</div>
             </el-image>
           </el-col>
         </el-row>
@@ -96,45 +44,51 @@
 </template>
 
 <script>
+import ItemTitle from '@/components/article/list/itemTitle'
+import ItemType from '@/components/article/list/itemType'
+import ItemCategory from '@/components/article/list/itemCategory'
+import ItemInfo from '@/components/article/list/itemInfo'
+
 export default {
   props: {
     data: Array
   },
   methods: {
-    goDetail (val) {
-      this.$emit('open-viewer', val)
-    },
     format (date) {
       return this.$dayjs(date).format('YYYY-MM-DD HH:mm:ss')
     },
-    getCategory (id) {
-      // this.$store.dispatch('article/getCategory', id)
-    }
+    // 编辑文章
+    handleEdidt (item) {
+      console.log(item)
+    },
+    // 预览文章
+    handleDetail (item) {
+      this.$emit('open-viewer', item)
+    },
+    // 修改信息
+    handleUpdate () { },
+    // 取消置顶
+    handleUnpinned () { },
+    // 删除文章
+    handleDelete () { }
   },
   filters: {
-    type (val, isText) {
-      if (!val && val !== 0) return
-      let type = ''
-      switch (val) {
-        case 0:
-          type = isText ? '原创' : 'danger'
-          break
-        case 1:
-          type = isText ? '转载' : 'success'
-          break
-        case 2:
-          type = isText ? '翻译' : ''
-          break
-        default:
-          type = isText ? '草稿' : 'info'
-          break
+    infoData (obj) {
+      const { view, like, commont, collect, type, top } = obj
+      return {
+        view,
+        like,
+        commont,
+        collect,
+        type,
+        top
       }
-      return type
     }
   },
   data () {
     return {
-      url: 'https://cdn.eleadmin.com/20200610/ttkIjNPlVDuv4lUTvRX8GIlM2QqSe0jg.jpg',
+      url: '',
+      // url: 'https://cdn.eleadmin.com/20200610/ttkIjNPlVDuv4lUTvRX8GIlM2QqSe0jg.jpg',
       srcList: [
         'https://cdn.eleadmin.com/20200610/ttkIjNPlVDuv4lUTvRX8GIlM2QqSe0jg.jpg',
         require('@/assets/demo1.png'),
@@ -149,6 +103,10 @@ export default {
     }
   },
   components: {
+    ItemTitle,
+    ItemType,
+    ItemCategory,
+    ItemInfo
   }
 }
 </script>
@@ -157,67 +115,6 @@ export default {
 .article-list {
   .article-list-item {
     padding: 16px 0;
-    // 文章标题
-    .article-list-item-title {
-      margin-bottom: 16px;
-      .article-list-item-txt {
-        flex: 1;
-        .el-link {
-          font-size: 1em;
-        }
-        &:hover {
-          .el-link {
-            color: #409eff;
-          }
-        }
-      }
-      .postdate {
-        font-size: 14px;
-        color: #999;
-      }
-    }
-    // 文章类型
-    .article-list-type {
-      .el-tag {
-        margin-right: 8px;
-      }
-    }
-    // 文章分类
-    .article-list-item-category {
-      margin-top: 16px;
-      font-size: 14px;
-      color: #909399;
-      .category-text {
-        margin-left: 6px;
-      }
-    }
-    // 文章信息
-    .article-list-item-info {
-      margin-top: 16px;
-      color: #909399;
-      .article-list-item-readComment {
-        font-size: 14px;
-      }
-      .circle-step {
-        margin: 0 8px;
-        width: 3px;
-        height: 3px;
-        background: #555666;
-        border-radius: 50%;
-      }
-      .item-info-oper {
-        .el-link:not(.el-icon-more) {
-          color: #222226;
-          padding: 0 12px;
-          &:hover {
-            color: #555666;
-          }
-        }
-        .el-dropdown {
-          margin-left: 12px;
-        }
-      }
-    }
   }
   .el-divider--horizontal {
     margin: 0;
