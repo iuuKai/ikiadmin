@@ -4,9 +4,9 @@
       >上传<i class="el-icon-upload el-icon--right"></i
     ></el-button>
     <el-button type="primary" @click="goEditor">写文章</el-button>
-    <div class="main-nav-tabs"></div>
+    <!-- <div class="main-nav-tabs"></div>
     <div class="main-search-box"></div>
-    <div class="article-manage-list" data=""></div>
+    <div class="article-manage-list" data=""></div> -->
     <el-card>
       <!-- 列表 -->
       <ArticleList
@@ -45,111 +45,116 @@
 </template>
 
 <script>
-import ArticleUpload from './ArticleUpload'
-import ArticleList from './ArticleList'
+import ArticleUpload from "./ArticleUpload";
+import ArticleList from "./ArticleList";
 // import ArticleDetails from './ArticleDetails'
-import ArticleDetail from '@/components/article/ArticleDetail'
+import ArticleDetail from "@/components/article/ArticleDetail";
 
 export default {
-  created () {
-    this.initDetail()
-    this.getCategoryList()
-    this.getArticleList()
+  created() {
+    this.initDetail();
+    this.getCategoryList();
+    this.getArticleList();
   },
-  mounted () {
-  },
+  mounted() {},
   methods: {
     // 初始化，如果route包含id则直接访问
-    initDetail () {
-      const id = this.id
+    initDetail() {
+      const id = this.id;
       if (id) {
-        this.detailsVisible = true
-        this.getDetail(id)
+        this.detailsVisible = true;
+        this.getDetail(id);
       }
     },
     // 获取分类
-    getCategoryList () {
-      this.$store.dispatch('article/getCategoryList').then(list => {
-        this.categoryList = list
-      })
+    getCategoryList() {
+      this.$store.dispatch("article/getCategoryList").then(list => {
+        this.categoryList = list;
+      });
     },
     // 获取文章列表
-    getArticleList () {
-      this.$store.dispatch('article/getArticleList').then(list => {
-        this.articleList = list
+    getArticleList() {
+      this.$store.dispatch("article/getArticleList").then(list => {
+        this.articleList = list;
         this.articleList.sort((a, b) => {
           // 如果两者 top 一样，就 createdDate 升序
           if ((a.top && b.top) || (!a.top && !b.top)) {
-            return a.createdDate - b.createdDate
+            return a.createdDate - b.createdDate;
           } else {
-            return b.top - a.top
+            return b.top - a.top;
           }
-        })
-        this.tagList = Array.from(new Set(list.map(({ tags }) => {
-          return tags
-        }).flat()))
-      })
+        });
+        this.tagList = Array.from(
+          new Set(
+            list
+              .map(({ tags }) => {
+                return tags;
+              })
+              .flat()
+          )
+        );
+      });
     },
     // 获取文章内容
-    getDetail (id) {
-      this.$store.dispatch('article/getDetail', id).then(res => {
-        this.detailTitle = res.title
-        this.detailContent = res.content
-      })
+    getDetail(id) {
+      this.$store.dispatch("article/getDetail", id).then(res => {
+        this.detailTitle = res.title;
+        this.detailContent = res.content;
+      });
     },
     // 前往编辑器
-    goEditor () {
-      this.$router.push({ name: 'editor' })
+    goEditor() {
+      this.$router.push({ name: "editor" });
     },
     // 前往文章浏览
-    goDetail (value, isUploaded = false) {
+    goDetail(value, isUploaded = false) {
       // 是否已上传
       if (isUploaded) {
-        const { objectId: id } = value
-        this.$router.push({ query: { id } })
+        const { objectId: id } = value;
+        this.$router.push({ query: { id } });
       } else {
-        const { title, content } = value
-        this.detailTitle = title
-        this.detailContent = content
-        this.detailsVisible = true
+        const { title, content } = value;
+        this.detailTitle = title;
+        this.detailContent = content;
+        this.detailsVisible = true;
       }
     }
   },
   computed: {
-    id () {
-      return this.$route.query.id
+    id() {
+      return this.$route.query.id;
     },
-    uploadOptions () {
+    uploadOptions() {
       return {
         tags: this.tagList,
         category: this.categoryList
-      }
+      };
     }
   },
   watch: {
-    detailContent () { },
-    id (newValue, oldValue) {
+    detailContent() {},
+    id(newValue, oldValue) {
       if (newValue) {
-        this.detailsVisible = true
-        this.getDetail(newValue)
+        this.detailsVisible = true;
+        this.getDetail(newValue);
       } else {
-        this.detailsVisible = false
+        this.detailsVisible = false;
       }
     },
-    detailsVisible (newValue, oldValue) {
+    detailsVisible(newValue, oldValue) {
       if (!newValue) {
-        this.$router.push({ query: '' })
-        this.detailTitle = ''
-        this.detailContent = ''
+        this.$router.push({ query: "" });
+        this.detailTitle = "";
+        this.detailContent = "";
       }
     }
   },
-  data () {
+  data() {
     return {
       detailsVisible: false,
       uploadVisible: false,
-      detailContent: '',
-      detailTitle: '',
+      detailContent: "",
+      detailTitle: "",
       detailOptions: {},
       // 文章列表
       articleList: [],
@@ -157,7 +162,7 @@ export default {
       tagList: [],
       // 分类
       categoryList: []
-    }
+    };
   },
   components: {
     ArticleUpload,
@@ -165,8 +170,7 @@ export default {
     // ArticleDetails
     ArticleDetail
   }
-}
+};
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>
